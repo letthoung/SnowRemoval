@@ -1,0 +1,59 @@
+<?php
+// The user is redirected here from login.php.
+
+session_start(); // Start the session.
+
+// If no session value is present, redirect the user:
+// Also validate the HTTP_USER_AGENT!
+if (!isset($_SESSION['agent']) OR ($_SESSION['agent'] != md5($_SERVER['HTTP_USER_AGENT']) )) {
+
+	// Need the functions:
+	require ('includes/login_functions.inc.php');
+	redirect_user();	
+
+}
+
+// Set the page title and include the HTML header:
+$page_title = 'Home Page';
+include ('includes/header.html');
+require ('includes/mysqli_connect.php');
+
+?>
+<!DOCTYPE html>
+<html>
+<body>
+<script>
+function cursor_hand(x)
+	{
+		x.style.cursor = "pointer";
+	}
+	 
+	function cursor_default(x)
+	{
+		x.style.cursor = "default";
+	}
+	
+	function hide_element(nm)
+	{
+		var table_selector = "#" + nm;
+		$(nm).toggle();	
+	}
+	</script>
+ <table style= "margin:auto; border:none; padding-bottom: 100px;">
+ <tr>
+			<td style="width: 100px; height:20px;" ><div id="snowremoval"><div onclick = "hide_element(snowremovalclick);" style = "text-decoration: underline; text-align:center; max-width:300px;" onmouseover="cursor_hand(this)" onmouseout="cursor_default(this)">Snow Removal</div><div id="snowremovalclick"><?php
+																				$today = (int) date('n');
+
+																				if( $today <= 4 || $today == 11 || $today == 12)
+																							{
+																				echo '<p><b>Snow Removal</b></p>';
+																				include ('includes/snow_events.html');
+																							}
+																						?></td>
+</tr>
+</body>
+	</html>
+	
+	<?php
+mysqli_close($dbc);
+include ('includes/footer.html');
