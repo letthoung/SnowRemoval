@@ -1,0 +1,76 @@
+@charset "utf-8";
+
+
+.con
+{
+	margin:0 auto;
+	width:100%;
+	display: flex;
+	overflow:auto;
+}
+
+.map_can
+{
+	border:thin solid black;
+	width:100%;
+	height:700px;
+	float:left;
+	padding-left: 30px;
+	
+}
+.ifr
+{	
+	width: 50%;
+	float:right;
+	height:700px;	
+	overflow:visible;
+	padding: 50px;
+}
+.ifloat
+{	
+	width: 50%;
+	height:700px;
+	border: none;
+	overflow:visible;
+}
+
+.calf
+{
+	padding:0px;
+	width:5%;
+	height:50%;
+	display:none;
+	background-color:white;
+	border-bottom:thin solid black;
+	-webkit-overflow-auto: touch;
+	overflow: visible;
+	z-index:1001;
+	position:fixed;
+	top:25px;
+	right:0px;
+}
+.ifrf
+{
+	z-index:1001;
+	width: 25%;
+	display:none;
+	height:70%;
+	position:fixed;
+	bottom:0px;
+	right:0px;
+	background-color:white;
+	-webkit-overflow-auto: touch;
+	overflow:auto;
+}
+#main 
+{
+	display: inline-flex;
+	padding: 20px;
+	
+}
+#two 
+{
+	width: 25%;
+	flex:1
+	padding: 20px;
+}

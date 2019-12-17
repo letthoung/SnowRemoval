@@ -1,0 +1,94 @@
+<?php
+  /* ldap_auth - user authentication using AD/ldap suitable for single sign on
+   * Methods:
+   *  authenticate - authenticate user name and pass word
+   *  info - ldap information about a user
+   *
+   * Usage: see self test comment at bottom for examples.
+   * $ldap = new ldap_auth();
+   * $ldap->authenticate('username','password') ? echo "OK": echo "NO";
+   * print_r($ldap->info('username'));
+   */
+Class ldap_auth {
+  private $ds = null;
+  private $server = 'ldap://rodc.nku.edu';
+  private $port = 636;
+  private $user_prefix = 'nku\\';
+  private $user_suffix = null;
+  private $dc = "DC=hh,DC=nku,DC=edu";
+
+  function __construct() {
+	   
+    // establish an ldap connection or throw exception
+    // if we can't connect
+    // (note if the ldap server is offline this error could come up)
+	$this->ds = ldap_connect($this->server,$this->port);
+    if (!$this->ds) 
+      throw new Exception("Could not connect to server.");
+
+    // these next two lines are necessary to get this to work 
+    // with microsoft active directory
+    ldap_set_option($this->ds, LDAP_OPT_PROTOCOL_VERSION, 3);
+    ldap_set_option($this->ds, LDAP_OPT_REFERRALS, 0);
+    
+  }
+
+  // returns null if ok, otherwise return string of error
+  function authenticate($username, $password) {
+    // if either the username or password fields have been left blank, 
+    // then print an error message
+    if ( empty($username) || empty($password))
+      return "Please enter a username and/or password.";
+
+    // try to bind to the ldap server using the following 
+    // username and password, if we can't bind then the user 
+    // typed the wrong username or the wrong password.  
+    // In either case we want to give them a generic response 
+    // that doesn't give away too much information about our system
+    // for instance we don't want to tell them that a username 
+    // exists or doesn't exist.
+    // Have to turn off errors or ldap_bind issues stack trace
+    // on invalid user/pass.
+    $binding = @ldap_bind($this->ds, 
+		$this->user_prefix.$username.$this->user_suffix, $password);
+    if (!$binding)
+      return 'Username and/or password don\'t match.';
+    return null;
+  }
+
+  // search ldap for given user
+  // if found return entries, else return null
+  function info($username) {
+    $sr = @ldap_search($this->ds, $this->dc, 
+          "(&(objectCategory=user)(samAccountName=$username))");
+    $info = null;
+    if ($sr)
+      $info = @ldap_get_entries($this->ds, $sr);
+    return $info;
+  }
+}
+
+// self test
+/*
+function self_test($user,$pass) {
+  echo "$user ";
+  try {
+    $a = new ldap_auth();
+    switch ($a->authenticate($user,$pass)) {
+    case 'blank field': echo "blank fields in username/password\n"; break;
+    case 'wrong user pass':  echo "wrong user pass\n"; break;
+    case null: echo "OK\n"; break;
+    }
+    $info = $a->info($user);
+    if ($info) 
+      print_r($info[0]['cn']);
+  }
+  catch (Exception $e) {
+    echo $e->getMessage()."\n";
+    }
+}
+self_test('glandorff1','pass'); // replace with your username/password 
+self_test('glandorff1',null);   // null passwords are invalid
+self_test(null, 'pass');        // null user names are invalid
+self_test('bill', 'pass');      // non-existant user name/password
+*/

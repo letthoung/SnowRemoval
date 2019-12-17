@@ -3,11 +3,11 @@
 
 	// If no session value is present, redirect the user:
 	// Also validate the HTTP_USER_AGENT!
-	/*if (!isset($_SESSION['agent']) OR ($_SESSION['agent'] != md5($_SERVER['HTTP_USER_AGENT']) OR ($_SESSION['admin_level'] < 1) ))
+	if (!isset($_SESSION['agent']) OR ($_SESSION['agent'] != md5($_SERVER['HTTP_USER_AGENT']) OR ($_SESSION['admin_level'] < 1) ))
 	{
 		require ('includes/login_functions.inc.php');
 		redirect_user('index.php');
-	}*/
+	}
 
 	$user_id = $_SESSION['user_number'];
 	$task_id = (isset($_GET['task']))? $_GET['task']:0;
@@ -173,7 +173,7 @@ body{
 				area_list.length = 0;
 				for(var i = 0; i < res.length; i++)
 				{
-					var list = document.createElement('li');
+					var div = document.createElement('div');
 					valtext = res[i].split("||");
 					var opt = document.createElement('input');
 					opt.value = valtext[0];
@@ -181,13 +181,13 @@ body{
 					opt.name = "area-loc";
 					opt.type = "checkbox";
 					opt.class = "area-loc";
-					opt.checked = "checked";
+                    opt.id="areas-"+valtext[0];
 					var lab = document.createElement('label');
 					lab.for= '"'+valtext[0]+'"';
 					lab.textContent = valtext[1];
-					list.appendChild(opt);
-					list.appendChild(lab);
-					area_list.appendChild(list);
+					div.appendChild(opt);
+					div.appendChild(lab);
+					area_list.appendChild(div);
 				}
 			}
 
@@ -217,7 +217,24 @@ body{
 					 $('#arr').val(JSON.stringify(jsarray)),
 				);
 	}
-	function updateEquipment(){
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    function update(){
+        updateEquipment();
+        updateArea();
+    }
+	
+    function updateEquipment(){
 		var select = document.getElementById("employee_select");
 		var equipments = document.getElementById("equip");
 		var workerId = select.options[select.selectedIndex].value;
@@ -229,14 +246,100 @@ body{
 			},
 			dataType: "text",
 			success: function(data){
-				console.log(data);
+				//console.log(data);
 				equipments.options[data-1].selected = true;
 			}
 		});
 	}
+    
+    function updateArea(){
+        var select = document.getElementById("employee_select");
+		var workerId = select.options[select.selectedIndex].value;
+        
+        
+        document.getElementById("areas").innerHTML = "";
+        
+        //console.log(workerId);
+		
+       $.ajax({
+			type:'post',
+			url: 'update_area_ajax.php',
+			data:{
+				workerId:workerId
+			},
+			dataType: "text",
+			success: function(data){
+                var res = data.split(";");
+                var sec = res[0];
+                var loc = res[1];
+                var areaArray = res[2].split(",");
+                var idArray = res[3].split(",");
+                var allAreaArray = res[4].split(",");
+                
+                /*console.log(sec);
+                console.log(loc);
+                console.log(areaArray);
+                console.log(idArray);
+                console.log(allAreaArray);*/
+                
+                area_list = document.getElementById("areas");
+				for(var i = 0; i < idArray.length; i++)
+				{
+					var div = document.createElement('div');
+					var opt = document.createElement('input');
+					opt.value = idArray[i];
+					//opt.textContent = valtext[1];
+					opt.name = "area-loc";
+					opt.type = "checkbox";
+					opt.class = "area-loc";
+                    opt.id="areas-"+idArray[i];
+					var lab = document.createElement('label');
+					lab.for= '"'+idArray[i]+'"';
+					lab.textContent = allAreaArray[i];
+					div.appendChild(opt);
+					div.appendChild(lab);
+					area_list.appendChild(div);
+				}
+                
+                document.getElementById("sections-" + sec).selected = true;
+                document.getElementById("locations-" + loc).selected = true;
+                
+                areaArray.forEach(current => {
+                    if (document.getElementById("areas-" + current) != null)
+                        document.getElementById("areas-" + current).checked = true;    
+                });
+                
+			}
+		});
+    }
 
-	function insertNewEquip(){
-		console.log("data");
+	
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    function insertNewEquip(){
+		//console.log("data");
 		var equipName = document.getElementById("new_equip").value;
 		$.ajax({
 			type:'post',
@@ -246,7 +349,7 @@ body{
 			},
 			dataType: "text",
 			success: function(data){
-				console.log(data+"--Equipment Added");
+				//console.log(data+"--Equipment Added");
 			}
 		});
 	}
@@ -269,7 +372,7 @@ body{
     });
 });
 function showNewEquipBox(){
-	console.log(document.getElementsByClassName("new_equip"));
+	//console.log(document.getElementsByClassName("new_equip"));
 	document.getElementById("new_equip").style.display = "inline";
 	document.getElementById("new_equip_sub").style.display = "inline";
 }
@@ -291,7 +394,7 @@ function showNewEquipBox(){
 	echo '<table class="table table-striped table-bordered table-hover table-condensed" style = "margin:auto;">';
 	if($purpose == "create")
 	{
-		echo '<tr><th>Worker:<span class="error"><sup>*</sup></span></th><td><select name = "employee_select" id = "employee_select" onchange = "updateEquipment()">';
+		echo '<tr><th>Worker:<span class="error"><sup>*</sup></span></th><td><select name = "employee_select" id = "employee_select" onchange = "update()">';
 		$q = "SELECT user_id, first_name, last_name FROM users WHERE snowteam ='1' ORDER BY last_name";
 		$rs = @mysqli_query($dbc, $q);
 		while($row = mysqli_fetch_array($rs))
@@ -310,8 +413,37 @@ function showNewEquipBox(){
         
         
         
+        $query = "SELECT * FROM snow_removal WHERE employee = $user_id ORDER BY start DESC";
+        $result = mysqli_query($dbc, $query);
+        if (!result){
+            die("First query for user failed!" . mysqli_error($dbc));
+        }
+        $row = mysqli_fetch_assoc($result);
+        $area_id = $row['area'];
+        $timeInterval = $row['start'];
+        $timeInterval = date("Y-m-d H:i:s", strtotime($timeInterval) - (30*60));
+        
+        $query = "SELECT * FROM areas_new WHERE area_id = $area_id";
+        $result = mysqli_query($dbc, $query);
+        if (!result){
+            die("Second query for area failed!" . mysqli_error($dbc));
+        }
+        $row = mysqli_fetch_assoc($result);
+        $section = $row['section'];
+        $location = $row['location'];
         
         
+        
+        $query = "SELECT area FROM snow_removal WHERE employee = $user_id AND start > '$timeInterval'";
+        $result = mysqli_query($dbc, $query);
+        if (!$result){
+            die("Third query for area failed!" . mysqli_error($dbc));
+        }
+        
+        $areaArray = array();
+        while($row = mysqli_fetch_array($result)){
+            array_push($areaArray, $row[0]);
+        }
         
         
         // Section
@@ -324,15 +456,16 @@ function showNewEquipBox(){
 		{
 			echo '<option ';
 			
-            if (isset($sec) AND $sec == $row[0])
-                echo 'selected ':'';
-            else if ( /* To do */)
-                echo 'selected ':'';
+            /*if (isset($sec) AND $sec == $row[0])
+                echo 'selected ';
+            else */if ($row[0] == $section)
+                echo 'selected ';
             
-			echo 'value = "' . $row[0] . '">' . $row[0] . '</option>';
+			echo 'id = "sections-' . $row[0] . '" value = "' . $row[0] . '">' . $row[0] . '</option>';
 		}
 		mysqli_free_result($rs);
 		echo '</select></td>';
+        
         
         // Location
 		echo '<tr><th>Location:<span class="error">*</span></th>';
@@ -343,22 +476,38 @@ function showNewEquipBox(){
         while($row = mysqli_fetch_array($rs))
         {
             echo '<option ';
-            echo 'value = "' . $row[0] . '"> '.$row[0].'</option>';
+            if ($row[0] == $location)
+                echo 'selected ';
+            echo 'id = "locations-' . $row[0] . '"value = "' . $row[0] . '"> '.$row[0].'</option>';
         }
 
 		mysqli_free_result($rs);
 		echo '</select></td>';
-
+        
 
 		echo '</tr>';
-
 		echo '<tr><th ><span id = "area-icon" style= "font-size:20px;" onclick="showAreas();">&#43;</span> Areas:<span class="error">*</span></th>';
 
 		echo '<td id = "area-toggle" style = "display:inline"><input type="checkbox" onclick="toggle(this);" />
         <b>Toggle All Checkboxes</b>
         <br><br>
-        <div id = "areas" name = "areas" size="12"></div>';
-		echo '</td>';
+        <div id = "areas" name = "areas" size="12">';
+        
+        
+        
+        $query2 = "SELECT * FROM areas_new WHERE section = " . $section . " AND location = '" . $location . "' ORDER BY area ASC";
+        $result2 = mysqli_query($dbc, $query2);
+        if (!$result2){
+            die("QUERY FAILED! " . mysqli_error($dbc));
+        }
+        while ($row2 = mysqli_fetch_assoc($result2)){
+            echo "<input name = 'area-loc' type = 'checkbox' value = '" . $row2['area_id'] . "' id = 'areas-" . $row2['area_id'] . "'";
+            if (in_array($row2['area_id'], $areaArray))
+                echo " checked";
+            echo "><label>" . $row2['area'] . "</label><br>";
+        }
+        echo '</div>';
+        echo '</td>';
 		echo '</tr>';
 		
         

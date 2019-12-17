@@ -1,0 +1,81 @@
+<script src="js/HomeControl.js"></script>
+<script src="js/afs.js"></script>
+<style>
+	.weather
+	{
+		margin:auto;
+		border:thin solid black;
+		height:350px;
+		width:500px;
+	}
+</style>
+
+<script>
+	var w_map;	
+	var radar = [];
+	radar.push(new google.maps.KmlLayer("http://192.122.237.120/pmaps/kmz/Cameras/Cameras.kml", {preserveViewport: true, zIndex:100}));
+	radar.push(new google.maps.KmlLayer("http://192.122.237.120/pmaps/kmz/Composite_Reflectivity.kmz", {preserveViewport: true, zIndex:100}));
+	radar.push(new google.maps.KmlLayer("http://192.122.237.120/pmaps/kmz/Long_Range_Reflectivity.kmz", {preserveViewport: true, zIndex:100}));
+	radar.push(new google.maps.KmlLayer("http://192.122.237.120/pmaps/kmz/One_Hour_Precipitation.kmz", {preserveViewport: true, zIndex:100}));
+	radar.push(new google.maps.KmlLayer("http://192.122.237.120/pmaps/kmz/Short_Range_Reflectivity.kmz", {preserveViewport: true, zIndex:100}));
+	radar.push(new google.maps.KmlLayer("http://192.122.237.120/pmaps/kmz/Storm_Relative_Motion.kmz", {preserveViewport: true, zIndex:100}));
+	radar.push(new google.maps.KmlLayer("http://192.122.237.120/pmaps/kmz/Storm_Total_Precipitation.kmz", {preserveViewport: true, zIndex:100}));
+	radar.push(new google.maps.KmlLayer("http://192.122.237.120/pmaps/kmz/Velocity.kmz", {preserveViewport: true, zIndex:100}));
+	radar.push(new google.maps.KmlLayer("http://192.122.237.120/pmaps/kmz/Warnings.kmz", {preserveViewport: true, zIndex:100}));
+	
+	window.addEventListener("load", w_init);
+	function set_radar()
+	{
+		var t = document.getElementById("radars").value;
+		for(var i = 0; i < radar.length; i++)
+		{
+			if(i == t)
+			{
+				radar[i].setMap(w_map);
+			}
+			else
+			{
+				radar[i].setMap(null);
+			}
+		}
+	}
+	function w_init()
+	{
+		var latlng = new google.maps.LatLng(39.032336, -84.464403);
+		var myOptions = 
+		{
+			zoom: 10,
+			center: latlng,
+			streetViewControl: false,
+			rotateControl: false,
+			zoomControl: false,
+			mapTypeId: google.maps.MapTypeId.MAP			
+		};
+		
+		w_map = new google.maps.Map(document.getElementById("weather"),myOptions);	//create the map
+		w_map.setTilt(0);
+		var homeControlDiv = document.createElement("div");//add a home button to the map
+		homeControlDiv.index = 1;
+		homeControlDiv.style.padding = "5px";
+		var homeControlButton = new HomeControl(homeControlDiv, w_map);
+		w_map.controls[google.maps.ControlPosition.TOP_RIGHT].push(FullScreenControl(w_map));
+		w_map.controls[google.maps.ControlPosition.TOP_RIGHT].push(homeControlButton);
+		set_radar();
+	}
+	
+</script>
+<p style="width:50px; margin:auto;"><select name = "radars" id = "radars" onchange="set_radar();">
+		<option value = "0" selected>Cameras</option>
+		<option value = "1">Composite Reflectivity</option>
+		<option value = "2">Long Range Reflectivity</option>
+		<option value = "3">One Hour Precipitation</option>
+		<option value = "4">Short Range Reflectivity</option>
+		<option value = "5">Storm Relative Motion</option>
+		<option value = "6">Storm Total Precipitation</option>
+		<option value = "7">Velocity</option>
+		<option value = "8">Warnings</option>
+	</select>		
+</p>
+<br>
+<div id = "weather" class = "weather">
+</div>

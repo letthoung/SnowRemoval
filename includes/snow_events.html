@@ -1,0 +1,138 @@
+<?php
+// The user is redirected here from login.php.
+
+session_start(); // Start the session.
+
+// If no session value is present, redirect the user:
+// Also validate the HTTP_USER_AGENT!
+if (!isset($_SESSION['agent']) OR ($_SESSION['agent'] != md5($_SERVER['HTTP_USER_AGENT']) )) {
+
+	// Need the functions:
+	require ('includes/login_functions.inc.php');
+	redirect_user();	
+
+}
+
+// Set the page title and include the HTML header:
+$page_title = 'Home Page';
+include ('includes/header.html');
+require ('includes/mysqli_connect.php');
+
+?>
+	<script src="js/HomeControl.js"></script>
+	<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBR_M-fp3NSA6kS1RACsmj8M93rscCxUMk&callback=initMap"
+type="text/javascript"></script>
+	<style>
+		.map_canvas
+		{
+			margin: auto;
+			border:thin solid black;
+			width:500px;
+			height:700px;
+			
+		}
+	</style>
+	
+	<script>
+		var layer;
+		var map;
+		window.addEventListener("load", init);
+		function showMap()
+		{
+			var center = new google.maps.LatLng(39.032336, -84.464403);
+			map.setCenter(center);
+			map.setZoom(15);
+			var t = document.getElementById("timeFrame").value;			
+			var xmlhttp;
+			xmlhttp = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
+				xmlhttp.onreadystatechange = function()//Function called when there is a change of state for the server
+				{                                      //request
+					if (xmlhttp.readyState == 4 && xmlhttp.status == 200)//when request is complete and no issues
+					{
+						var str = xmlhttp.responseText;//assign the response to str
+						var strSplit = str.split("||");
+						var markers = false;
+						if(strSplit.length > 1)
+						{
+							var res = strSplit[0].split("::");
+							var tempLayers = "(";						
+							for(var i = 0; i < res.length; i++)
+							{
+								tempLayers += ( i == 0 )? "":",";
+								tempLayers += "'" + res[i] + "'";
+								markers = true;
+							}						
+							res = strSplit[1].split("::");
+						}
+						else
+						{
+							res = strSplit[0].split("::");
+							var tempLayers = "(";
+						}						
+						for(var i = 0; i < res.length; i++)
+						{
+							tempLayers += ( markers )? ",":"";
+							tempLayers += "'" + res[i] + "'";
+							markers = true;
+						}
+						tempLayers += ")";
+						layer = new google.maps.FusionTablesLayer({
+							query: {
+							  select: 'geometry',
+							  from: '18D08gOBO4y5i9Pc2WJJp6iHGVzvCCc52C3Ua40jp',
+							  where: "'name' IN " + tempLayers
+							}
+						  });
+						  layer.setMap(map);
+					}
+				};
+				xmlhttp.open("GET","../get_tasks.php?t="+t,true);
+				xmlhttp.send(); 
+		}
+		//Create map when page loads 
+		function init()
+		{
+			var latlng = new google.maps.LatLng(39.032336, -84.464403);
+			var myOptions = 
+			{
+				zoom: 15,
+				center: latlng,
+				streetViewControl: false,
+				rotateControl: false,
+				zoomControl: false,
+				mapTypeId: google.maps.MapTypeId.MAP			
+			};
+
+			map = new google.maps.Map(document.getElementById("map"),myOptions);	//create the map
+			
+			var homeControlDiv = document.createElement("div");//add a home button to the map
+			homeControlDiv.index = 1;
+			homeControlDiv.style.padding = "5px";
+			var homeControlButton = new HomeControl(homeControlDiv, map);
+			map.controls[google.maps.ControlPosition.TOP_RIGHT].push(FullScreenControl(map));
+			map.controls[google.maps.ControlPosition.TOP_RIGHT].push(homeControlButton);
+			showMap();
+		}
+	</script>	
+		<p style = "width:50px;"><select name = "timeFrame" id = "timeFrame" onchange="showMap();">
+			<option value = "15">15 minutes</option>
+			<option value = "30">30 minutes</option>
+			<option value = "45">45 minutes</option>
+			<option value = "60">1 hour</option>
+			<option value = "90">1 1/2 hours</option>
+			<option value = "120">2 hours</option>
+			<option value = "150">2 1/2 hours</option>
+			<option value = "180">3 hours</option>
+			<option value = "210">3 1/2 hours</option>
+			<option value = "240">4 hours</option>
+			<option value = "270">4 1/2 hours</option>
+			<option value = "300">5 hours</option>
+		</select>		
+	</p>
+	<br>
+	<div id = "map" class = "map_canvas">
+	</div>
+	
+	<?php
+mysqli_close($dbc);
+include ('includes/footer.html');

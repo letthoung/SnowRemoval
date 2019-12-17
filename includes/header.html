@@ -1,0 +1,166 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<title><?php echo $page_title; ?></title>
+	<link rel="icon" href="images/NKU.png" type="image/png" sizes="16x16">
+	<link rel="stylesheet" href="includes/as.css" type="text/css" media="screen" />
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<?php
+
+  require ('includes/mysqli_connect.php');
+            	$qkey = "SELECT * FROM key_edit_requests";
+					if($rkey = @mysqli_query($dbc, $qkey))
+						
+						  {
+							  // Return the number of rows in result set
+							  $keyrowcount .= mysqli_num_rows($rkey);
+							if($keyrowcount > '0')
+							{
+								$checkkeyrequests= '<img src="/icons/alert.red.png"/>';
+							}else
+							{
+								$checkkeyrequests = '';
+							}
+                          }
+                          
+             $qassets = "SELECT * FROM fgen_edit_requests";
+					if($rassets = @mysqli_query($dbc, $qassets))
+						
+						  {
+							  // Return the number of rows in result set
+							  $assetrowcount .= mysqli_num_rows($rassets);
+							if($assetrowcount > '0')
+							{
+								$checkassetrequests= '<img src="/icons/alert.black.png"/>';
+							}else
+							{
+								$checkassetrequests = '';
+							}
+                          }
+						 
+                          ?>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js?libraries=geometry"></script>
+	<!--<script src="http://maps.google.com/maps/api/js"></script>-->
+	<script src="http://maps.google.com/maps/api/js"></script>
+	
+	<script>
+	//
+		//This script will simply give the user a check to ensure that they do wish to complete their action.
+		function confirmAction(message)
+		{
+			var agree;
+			agree = message ? confirm(message) : confirm("Are you sure you want to do this?");
+			return agree;
+		}
+
+		//hides or shows the table given by nm
+		function hide_table(nm)
+		{
+		//	alert(is_fullscreen);
+			var table_selector = "#table_" + nm;
+			$(table_selector).toggle();
+			//table_width = (table_width == 24)? 35:24;
+			//$("#iframeholder").animate({width: table_width + "%"});
+		}
+	// 
+	</script>
+    
+    
+</head>
+<body>
+		<br>
+		<div id="navigation">
+		<ul>
+		<div class="dropdown1" >
+		  <a href="#"><li><span>Maps</span></li></a>
+		  <div class="dropdown1-content">
+			<ul>
+			<?php
+          
+            
+				if (isset($_SESSION['agent']) OR ($_SESSION['agent'] == md5($_SERVER['HTTP_USER_AGENT'])))
+				{
+					echo '<li><a href="pmapsV2.php">Norse GIS</a></li>';
+					echo '<li><a href = "shapes.php">Points/Shapes</a></li>';
+					echo '<li><a href = "lights.php">Exterior Lights</a></li>';
+				}
+			?>
+			</ul>
+			</div></div>
+			<div class="dropdown1">
+					 <a href="#"><li><span>Tools <?php echo $checkkeyrequests.''.$checkassetrequests; ?></span></li></a>
+					<div class="dropdown1-content">
+					<ul>
+					<?php
+						if(isset($_SESSION['admin_level']) AND $_SESSION['admin_level'] >= 1 )
+						{
+							echo '<li><a href="dashboard.php">Dashboard</a></li>';
+						}
+						if(isset($_SESSION['agent']) OR ($_SESSION['agent'] == md5($_SERVER['HTTP_USER_AGENT'])))
+						{
+
+							echo '<li><a href="user_tools.php">User Tools</a></li>';
+
+						}
+
+						if(isset($_SESSION['admin_level']) AND $_SESSION['admin_level'] == 3)
+						{
+							echo '<li>';
+							echo '<a href="upload2.php">Upload File</a>';
+							echo '</li>';
+						}
+						if(isset($_SESSION['admin_level']) AND $_SESSION['admin_level'] >= 1 )
+						{
+							echo '<li>';
+							echo '<a href="tablets.php">Tablets</a>';
+							echo '</li>';
+							echo '<li>';
+							echo '<a href="vehicles.php">Vehicles</a>';
+							echo '</li>';
+						}
+						if(isset($_SESSION['admin_level']) AND $_SESSION['admin_level'] > 2 )
+						{
+							echo '<li ><a href="tools.php">Requested Edits '.$checkkeyrequests.''.$checkassetrequests.'</a></li>' ;
+						}
+					?>
+					</ul>
+					</div></div>
+					<div class="dropdown1">
+					 <a href="#"><li><span>Trades</span></li></a>
+					<div class="dropdown1-content">
+					<ul>
+
+						<?php
+							if (isset($_SESSION['agent']) OR ($_SESSION['agent'] == md5($_SERVER['HTTP_USER_AGENT'])))
+							{
+								echo '<li><a href="mysqli.php">Assets</a></li>';
+							}
+							if(isset($_SESSION['admin_level']) AND $_SESSION['admin_level'] >= 1 )
+							{
+								echo '<li><a href="snow_admin.php">Snow Removal</a></li>';
+								echo '<li><a href="locksmith.php">Doors/Locks</a></li>';
+							}
+
+						?>
+				</ul>
+			  </div>
+		</div>
+		<div class="dropdown1">
+		<li><span>
+			<?php
+				if (isset($_SESSION['user_id']))
+				{
+					echo '<a href="logout.php">Logout</a></span></li>';
+					echo '<div class="dropdown1-content"><ul><li><a href="loggedin.php">Home</a></li></ul></div>';
+				}
+				else
+				{
+					echo '<a href="login.php">Login</a></span></li>';
+				}
+			?>
+			</div>
+		</ul>
+		</div>
+<br>
+<div id="content">
+<br><br>
