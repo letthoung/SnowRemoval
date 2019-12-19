@@ -412,8 +412,19 @@ function showNewEquipBox(){
         
         
         
+        $query = "SELECT snowteam FROM users WHERE user_id = $user_id";
+        $result = mysqli_query($dbc, $query);
+        if (!result){
+            die("First query for user failed!" . mysqli_error($dbc));
+        }
+        $row = mysqli_fetch_array($result);
         
-        $query = "SELECT * FROM snow_removal WHERE employee = $user_id ORDER BY start DESC";
+        if ($row[0] == 1){
+            $search_id = $user_id;
+        } else {
+            $search_id = 47;
+        }
+        $query = "SELECT * FROM snow_removal WHERE employee = $search_id ORDER BY start DESC";
         $result = mysqli_query($dbc, $query);
         if (!result){
             die("First query for user failed!" . mysqli_error($dbc));
@@ -434,7 +445,7 @@ function showNewEquipBox(){
         
         
         
-        $query = "SELECT area FROM snow_removal WHERE employee = $user_id AND start > '$timeInterval'";
+        $query = "SELECT area FROM snow_removal WHERE employee = $search_id AND start > '$timeInterval'";
         $result = mysqli_query($dbc, $query);
         if (!$result){
             die("Third query for area failed!" . mysqli_error($dbc));
@@ -509,9 +520,7 @@ function showNewEquipBox(){
         echo '</div>';
         echo '</td>';
 		echo '</tr>';
-		
-        
-        
+
         
         
         
